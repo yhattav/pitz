@@ -1,25 +1,22 @@
 /**
- * Pitz - A TypeScript Library
+ * Pitz - A Framework-Agnostic Settings Management Library
  */
 
-export { default as utils } from './utils';
+// Core types and interfaces
+export * from './types';
 
-// Example function - replace with your actual library code
-export function greet(name: string): string {
-  return `Hello, ${name}!`;
-}
+// Store and state management
+export { createSettingsStore } from './store';
 
-export function add(a: number, b: number): number {
-  return a + b;
-}
+// Storage implementations
+export { LocalStorageAdapter, MemoryStorageAdapter, IndexedDBStorageAdapter } from './storage';
 
-// Export types
-export type GreetingOptions = {
-  prefix?: string;
-  suffix?: string;
-};
+// Relevance engine and templates
+export { RelevanceEngine } from './relevance';
+export { RelevanceTemplates } from './templates';
 
-export function greetWithOptions(name: string, options: GreetingOptions = {}): string {
-  const { prefix = 'Hello', suffix = '!' } = options;
-  return `${prefix}, ${name}${suffix}`;
-}
+// Builder pattern for configuration
+export { SettingsBuilder } from './builder';
+
+// Utilities
+export * from './utils';

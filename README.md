@@ -1,15 +1,17 @@
 # Pitz
 
-A TypeScript library built with Vite and tested with Vitest.
+A framework-agnostic settings management library with TypeScript support, built with Vite and tested with Vitest.
 
 ## Features
 
-- 🚀 Built with Vite for fast development and building
-- 🧪 Tested with Vitest for comprehensive testing
-- 📦 TypeScript support with full type definitions
-- 🌐 Framework agnostic - works with any JavaScript framework
-- 📋 ESLint configuration for code quality
-- 🔧 Multiple output formats (ESM, UMD)
+- 🚀 **Framework-agnostic** - Works with React, Vue, Svelte, or vanilla JavaScript
+- 🔧 **Type-safe** - Full TypeScript support with Zod validation
+- 📝 **Builder Pattern** - Fluent API for easy configuration
+- 🎯 **Conditional Logic** - Settings can depend on other settings with relevance functions
+- 💾 **Multiple Storage Options** - Memory, LocalStorage, IndexedDB adapters
+- ⚡ **Performance Optimized** - Throttled updates and selective subscriptions
+- 🧪 **Thoroughly Tested** - Comprehensive test suite with Vitest
+- 📦 **Multiple Formats** - ESM and UMD builds for different environments
 
 ## Development
 
@@ -53,20 +55,134 @@ pitz/
 └── package.json          # Project configuration
 ```
 
-## Usage
-
-After building the library, you can import and use it:
+## Quick Start
 
 ```typescript
-import { greet, add, utils } from 'pitz';
+import { z } from 'zod';
+import { 
+  SettingsBuilder, 
+  createSettingsStore, 
+  MemoryStorageAdapter,
+  RelevanceTemplates 
+} from 'pitz';
 
-// Basic functions
-console.log(greet('World')); // "Hello, World!"
-console.log(add(2, 3)); // 5
+// 1. Define your settings configuration
+const config = new SettingsBuilder()
+  .setting('graphics.quality')
+    .select('Graphics Quality', 'Set the graphics quality level', [
+      { label: 'Low', value: 'low' },
+      { label: 'High', value: 'high' }
+    ], 'Graphics')
+    .defaultValue('high')
+    
+  .setting('audio.enabled')
+    .toggle('Audio Enabled', 'Enable all audio', 'Audio')
+    .defaultValue(true)
+    
+  .setting('audio.volume')
+    .slider('Volume', 'Audio volume', 0, 100, 1, '%', 'Audio')
+    .defaultValue(50)
+    .dependsOn(RelevanceTemplates.dependsOn('audio.enabled')) // Only show if audio enabled
+    
+  .setting('user.name')
+    .input('Player Name', 'Your display name', 'User')
+    .defaultValue('Player')
+    .schema(z.string().min(1).max(20)) // Validation with Zod
+    
+  // Define UI structure
+  .tab('graphics', 'Graphics', '🎨')
+    .group('Settings')
+      .settings(['graphics.quality'])
+      
+  .tab('audio', 'Audio', '🔊')
+    .group('General')
+      .settings(['audio.enabled', 'audio.volume'])
+      
+  .tab('user', 'User', '👤')
+    .group('Profile')
+      .settings(['user.name'])
+      
+  .buildWithValidation();
 
-// Utility functions
-console.log(utils.isEmpty('')); // true
-console.log(utils.capitalize('hello')); // "Hello"
+// 2. Create store with storage
+const store = createSettingsStore({
+  storage: new MemoryStorageAdapter(),
+  debug: true
+});
+
+// 3. Register settings and initialize
+for (const definition of config.definitions) {
+  store.getState().registerController({
+    ...definition,
+    title: definition.ui?.title || definition.key,
+    description: definition.ui?.description || '',
+    category: definition.ui?.category
+  });
+}
+
+// Set defaults
+const defaults = config.definitions.reduce((acc, def) => {
+  acc[def.key] = def.defaultValue;
+  return acc;
+}, {});
+await store.getState().setValues(defaults);
+
+// 4. Use the settings
+await store.getState().setValue('graphics.quality', 'low');
+await store.getState().setValue('user.name', 'John');
+
+console.log(store.getState().values);
+// { graphics.quality: 'low', audio.enabled: true, audio.volume: 50, user.name: 'John' }
+```
+
+## Core Concepts
+
+### Settings Definitions
+Define your settings with type safety and validation:
+
+```typescript
+.setting('myKey')
+  .toggle('My Toggle', 'Description', 'Category')  // Boolean setting
+  .slider('My Slider', 'Description', 0, 100)      // Number setting with range
+  .select('My Select', 'Description', options)     // Enum setting
+  .input('My Input', 'Description')                // String setting
+  .color('My Color', 'Description')                // Color setting
+  .defaultValue(true)
+  .schema(z.boolean())                             // Zod validation
+```
+
+### Conditional Logic
+Settings can depend on other settings:
+
+```typescript
+.setting('advanced.setting')
+  .dependsOn(RelevanceTemplates.dependsOn('feature.enabled'))  // Show only if feature.enabled is true
+  .dependsOn(RelevanceTemplates.equals('mode', 'advanced'))    // Show only if mode equals 'advanced'
+  .dependsOn(RelevanceTemplates.allOf(                        // Multiple conditions
+    RelevanceTemplates.dependsOn('feature.enabled'),
+    RelevanceTemplates.greaterThan('level', 5)
+  ))
+```
+
+### Storage Adapters
+Choose your storage backend:
+
+```typescript
+// In-memory (for testing)
+new MemoryStorageAdapter()
+
+// Browser localStorage
+new LocalStorageAdapter({ prefix: 'myapp:' })
+
+// IndexedDB for larger data
+new IndexedDBStorageAdapter({ dbName: 'myapp-settings' })
+
+// Custom storage
+class CustomAdapter implements SettingsStorage {
+  async get(key: string) { /* ... */ }
+  async set(key: string, value: any) { /* ... */ }
+  // ...
+}
 ```
 
 ## Building

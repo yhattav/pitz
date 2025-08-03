@@ -1,7 +1,7 @@
 {
   "name": "pitz",
   "version": "0.1.0",
-  "description": "A TypeScript library",
+  "description": "A framework-agnostic settings management library with TypeScript support",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
@@ -20,6 +20,10 @@
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix"
   },
+  "dependencies": {
+    "zustand": "^4.5.0",
+    "zod": "^3.22.4"
+  },
   "devDependencies": {
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
@@ -33,7 +37,11 @@
     "vitest": "^1.0.0"
   },
   "keywords": [
+    "settings",
+    "configuration",
     "typescript",
+    "zustand",
+    "framework-agnostic",
     "library"
   ],
   "author": "",
