@@ -15,6 +15,9 @@ import {
   SettingsTab
 } from './types';
 
+// Strict object shape utility: disallow extra properties on object literals
+type NoExtraProps<Expected, Actual extends Expected> = Actual & Record<Exclude<keyof Actual, keyof Expected>, never>;
+
 /**
  * Builder for individual settings
  */
@@ -100,12 +103,15 @@ export class SettingBuilder {
   /**
    * Configure as a boolean toggle
    */
-  toggle(title: string, description: string, category: string = 'General'): this {
+  toggle(title: string, description: string, category?: string): this;
+  toggle<Shape extends { title: string; description?: string; category?: string }>(cfg: NoExtraProps<{ title: string; description?: string; category?: string }, Shape>): this;
+  toggle(a: string | { title: string; description?: string; category?: string }, b?: string, c: string = 'General'): this {
+    const cfg = typeof a === 'string' ? { title: a, description: b ?? '', category: c } : { title: a.title, description: a.description ?? '', category: a.category ?? 'General' };
     this.type('boolean');
     this.ui({
-      title,
-      description,
-      category,
+      title: cfg.title,
+      description: cfg.description,
+      category: cfg.category,
       controlType: 'toggle'
     });
     return this;
@@ -114,22 +120,27 @@ export class SettingBuilder {
   /**
    * Configure as a slider with range
    */
+  slider(title: string, description: string, min: number, max: number, step?: number, unit?: string, category?: string): this;
+  slider<Shape extends { title: string; description?: string; min: number; max: number; step?: number; unit?: string; category?: string }>(cfg: NoExtraProps<{ title: string; description?: string; min: number; max: number; step?: number; unit?: string; category?: string }, Shape>): this;
   slider(
-    title: string, 
-    description: string, 
-    min: number, 
-    max: number, 
+    a: string | { title: string; description?: string; min: number; max: number; step?: number; unit?: string; category?: string },
+    b?: string,
+    min?: number,
+    max?: number,
     step: number = 1,
     unit?: string,
     category: string = 'General'
   ): this {
+    const cfg = typeof a === 'string'
+      ? { title: a, description: b ?? '', min: min!, max: max!, step, unit, category }
+      : { title: a.title, description: a.description ?? '', min: a.min, max: a.max, step: a.step ?? 1, unit: a.unit, category: a.category ?? 'General' };
     this.type('number');
     this.ui({
-      title,
-      description,
-      category,
+      title: cfg.title,
+      description: cfg.description,
+      category: cfg.category!,
       controlType: 'slider',
-      controlProps: { min, max, step, unit }
+      controlProps: { min: cfg.min, max: cfg.max, step: cfg.step, unit: cfg.unit }
     });
     return this;
   }
@@ -137,19 +148,24 @@ export class SettingBuilder {
   /**
    * Configure as a select dropdown
    */
+  select(title: string, description: string, options: { label: string; value: string }[], category?: string): this;
+  select<Shape extends { title: string; description?: string; options: { label: string; value: string }[]; category?: string }>(cfg: NoExtraProps<{ title: string; description?: string; options: { label: string; value: string }[]; category?: string }, Shape>): this;
   select(
-    title: string,
-    description: string,
-    options: { label: string; value: string }[],
+    a: string | { title: string; description?: string; options: { label: string; value: string }[]; category?: string },
+    b?: string,
+    options?: { label: string; value: string }[],
     category: string = 'General'
   ): this {
+    const cfg = typeof a === 'string'
+      ? { title: a, description: b ?? '', options: options!, category }
+      : { title: a.title, description: a.description ?? '', options: a.options, category: a.category ?? 'General' };
     this.type('enum');
     this.ui({
-      title,
-      description,
-      category,
+      title: cfg.title,
+      description: cfg.description,
+      category: cfg.category!,
       controlType: 'select',
-      controlProps: { options }
+      controlProps: { options: cfg.options }
     });
     return this;
   }
@@ -157,19 +173,24 @@ export class SettingBuilder {
   /**
    * Configure as a color picker
    */
+  color(title: string, description: string, showHex?: boolean, category?: string): this;
+  color<Shape extends { title: string; description?: string; showHex?: boolean; category?: string }>(cfg: NoExtraProps<{ title: string; description?: string; showHex?: boolean; category?: string }, Shape>): this;
   color(
-    title: string,
-    description: string,
+    a: string | { title: string; description?: string; showHex?: boolean; category?: string },
+    b?: string,
     showHex: boolean = true,
     category: string = 'General'
   ): this {
+    const cfg = typeof a === 'string'
+      ? { title: a, description: b ?? '', showHex, category }
+      : { title: a.title, description: a.description ?? '', showHex: a.showHex ?? true, category: a.category ?? 'General' };
     this.type('string');
     this.ui({
-      title,
-      description,
-      category,
+      title: cfg.title,
+      description: cfg.description,
+      category: cfg.category!,
       controlType: 'color',
-      controlProps: { showHex }
+      controlProps: { showHex: cfg.showHex }
     });
     return this;
   }
@@ -177,12 +198,15 @@ export class SettingBuilder {
   /**
    * Configure as a text input
    */
-  input(title: string, description: string, category: string = 'General'): this {
+  input(title: string, description: string, category?: string): this;
+  input<Shape extends { title: string; description?: string; category?: string }>(cfg: NoExtraProps<{ title: string; description?: string; category?: string }, Shape>): this;
+  input(a: string | { title: string; description?: string; category?: string }, b?: string, c: string = 'General'): this {
+    const cfg = typeof a === 'string' ? { title: a, description: b ?? '', category: c } : { title: a.title, description: a.description ?? '', category: a.category ?? 'General' };
     this.type('string');
     this.ui({
-      title,
-      description,
-      category,
+      title: cfg.title,
+      description: cfg.description,
+      category: cfg.category,
       controlType: 'input'
     });
     return this;

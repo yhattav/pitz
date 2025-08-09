@@ -16,9 +16,14 @@ export default defineConfig({
       fileName: (format) => `index.${format}.js`,
     },
     rollupOptions: {
-      external: [],
+      external: ['zustand', 'zod', 'crypto-js', 'lodash-es'],
       output: {
-        globals: {},
+        globals: {
+          'zustand': 'zustand',
+          'zod': 'zod',
+          'crypto-js': 'CryptoJS',
+          'lodash-es': 'lodash'
+        },
       },
     },
   },
