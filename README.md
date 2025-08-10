@@ -66,42 +66,39 @@ import {
   RelevanceTemplates 
 } from 'pitz';
 
-// 1. Define your settings configuration
+// 1. Define your settings configuration (builder with object params)
 const config = new SettingsBuilder()
   .setting('graphics.quality')
-    .select('Graphics Quality', 'Set the graphics quality level', [
-      { label: 'Low', value: 'low' },
-      { label: 'High', value: 'high' }
-    ], 'Graphics')
+    .select({
+      title: 'Graphics Quality',
+      description: 'Set the graphics quality level',
+      options: [
+        { label: 'Low', value: 'low' },
+        { label: 'High', value: 'high' }
+      ],
+      category: 'Graphics'
+    })
     .defaultValue('high')
-    
   .setting('audio.enabled')
-    .toggle('Audio Enabled', 'Enable all audio', 'Audio')
+    .toggle({ title: 'Audio Enabled', description: 'Enable all audio', category: 'Audio' })
     .defaultValue(true)
-    
   .setting('audio.volume')
-    .slider('Volume', 'Audio volume', 0, 100, 1, '%', 'Audio')
+    .slider({ title: 'Volume', description: 'Audio volume', min: 0, max: 100, step: 1, unit: '%', category: 'Audio' })
     .defaultValue(50)
-    .dependsOn(RelevanceTemplates.dependsOn('audio.enabled')) // Only show if audio enabled
-    
+    .dependsOn(RelevanceTemplates.dependsOn('audio.enabled'))
   .setting('user.name')
-    .input('Player Name', 'Your display name', 'User')
+    .input({ title: 'Player Name', description: 'Your display name', category: 'User' })
     .defaultValue('Player')
-    .schema(z.string().min(1).max(20)) // Validation with Zod
-    
-  // Define UI structure
+    .schema(z.string().min(1).max(20))
   .tab('graphics', 'Graphics', '🎨')
     .group('Settings')
       .settings(['graphics.quality'])
-      
   .tab('audio', 'Audio', '🔊')
     .group('General')
       .settings(['audio.enabled', 'audio.volume'])
-      
   .tab('user', 'User', '👤')
     .group('Profile')
       .settings(['user.name'])
-      
   .buildWithValidation();
 
 // 2. Create store with storage
@@ -184,6 +181,24 @@ class CustomAdapter implements SettingsStorage {
   // ...
 }
 ```
+
+## Object-First Authoring (Alternative to Builder)
+
+You can author settings without the builder by creating controllers directly and passing them to your app’s integration:
+
+```ts
+const controllers = [
+  { key: 'ui.theme', type: 'enum', defaultValue: 'dark',
+    ui: { title: 'Theme', description: 'Choose theme', category: 'UI', controlType: 'select',
+      controlProps: { options: [{ label: 'Light', value: 'light' }, { label: 'Dark', value: 'dark' }] },
+      i18nKey: 'settings.ui.theme' } },
+  { key: 'ui.scale', type: 'number', defaultValue: 1,
+    ui: { title: 'Scale', description: 'UI scale', category: 'UI', controlType: 'slider',
+      controlProps: { min: 0.5, max: 2, step: 0.1 }, hint: 'Try 1.25' } },
+];
+```
+
+Custom keys are allowed on controllers and ui (e.g., i18nKey, hint) for app-specific needs.
 
 ## Building
 
