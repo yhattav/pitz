@@ -57,6 +57,8 @@ export interface SettingUIConfig {
     showRGB?: boolean;
     showHSL?: boolean;
   };
+  // Allow custom UI metadata for app-specific needs (e.g., i18n keys, hints)
+  [customKey: string]: unknown;
 }
 
 /**
@@ -73,6 +75,8 @@ export interface SettingController extends CoreSettingDefinition {
   step?: number;
   unit?: string;
   options?: { label: string; value: string }[];
+  // Allow additional app-specific fields at the controller level
+  [customKey: string]: unknown;
 }
 
 /**
